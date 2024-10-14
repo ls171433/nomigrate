@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.27)
+project(nomigrate)
+
+add_library(nomigrate-crypto SHARED src/sha.c src/sha_cng.c src/sha_sha224.c)
+target_include_directories(nomigrate-crypto PUBLIC include)
+target_link_libraries(nomigrate-crypto PUBLIC bcrypt)
+
+add_executable(test-sha test/test-sha.cpp)
+target_compile_options(test-sha PRIVATE -Wall)
+target_compile_options(test-sha PRIVATE -Wno-deprecated-declarations)
+target_include_directories(test-sha PUBLIC include)
+target_link_libraries(test-sha PUBLIC crypto)
+target_link_libraries(test-sha PUBLIC gtest)
+target_link_libraries(test-sha PUBLIC gtest_main)
+target_link_libraries(test-sha PUBLIC nomigrate-crypto)
