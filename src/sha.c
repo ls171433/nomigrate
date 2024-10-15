@@ -1,22 +1,41 @@
 #include <nomigrate/openssl/sha.h>
 
-int SHA1_Init(SHA_CTX *ctx)
+int NOMIGRATE_ITEM_L(SHA1_Init)(NOMIGRATE_ITEM_U(SHA_CTX) *ctx)
 {
-    BCryptOpenAlgorithmProvider(&(ctx->h_alg), BCRYPT_SHA1_ALGORITHM, NULL, 0);
-    BCryptCreateHash(ctx->h_alg, &(ctx->h_hash), NULL, 0, NULL, 0, 0);
+    NTSTATUS status;
 
-    return 0;
+    status = BCryptOpenAlgorithmProvider(&ctx->core.h_alg, BCRYPT_SHA1_ALGORITHM, NULL, 0);
+    if (!BCRYPT_SUCCESS(status))
+    {
+        return 0;
+    }
+
+    status = BCryptCreateHash(ctx->core.h_alg, &ctx->core.h_hash, NULL, 0, NULL, 0, 0);
+    if (!BCRYPT_SUCCESS(status))
+    {
+        status = BCryptCloseAlgorithmProvider(ctx->core.h_alg, 0);
+        return 0;
+    }
+
+    return 1;
 }
 
-int SHA1_Update(SHA_CTX *ctx, const void *data, size_t data_size)
+int NOMIGRATE_ITEM_L(SHA1_Update)(NOMIGRATE_ITEM_U(SHA_CTX) *ctx, const void *data, size_t data_size)
 {
-    BCryptHashData(ctx->h_hash, (PUCHAR)data, data_size, 0);
+    NTSTATUS status;
 
-    return 0;
+    status = BCryptHashData(ctx->core.h_hash, (PUCHAR)data, data_size, 0);
+    if (!BCRYPT_SUCCESS(status))
+    {
+        return 0;
+    }
+
+    return 1;
 }
 
-int SHA1_Final(unsigned char *out_data, SHA_CTX *ctx)
+int NOMIGRATE_ITEM_L(SHA1_Final)(unsigned char *out_data, NOMIGRATE_ITEM_U(SHA_CTX) *ctx)
 {
+    NTSTATUS status;
     static unsigned char static_out_data[SHA_DIGEST_LENGTH];
 
     if (out_data == NULL)
@@ -24,21 +43,44 @@ int SHA1_Final(unsigned char *out_data, SHA_CTX *ctx)
         out_data = static_out_data;
     }
 
-    BCryptFinishHash(ctx->h_hash, out_data, SHA_DIGEST_LENGTH, 0);
-    BCryptCloseAlgorithmProvider(ctx->h_alg, 0);
+    status = BCryptFinishHash(ctx->core.h_hash, out_data, SHA_DIGEST_LENGTH, 0);
+    if (!BCRYPT_SUCCESS(status))
+    {
+        status = BCryptCloseAlgorithmProvider(ctx->core.h_alg, 0);
+        return 0;
+    }
 
-    return 0;
+    status = BCryptCloseAlgorithmProvider(ctx->core.h_alg, 0);
+    if (!BCRYPT_SUCCESS(status))
+    {
+        return 0;
+    }
+
+    return 1;
 }
 
-void SHA1_Transform(SHA_CTX *ctx, const unsigned char *data)
+void NOMIGRATE_ITEM_L(SHA1_Transform)(NOMIGRATE_ITEM_U(SHA_CTX) *ctx, const unsigned char *data)
 {
 }
 
-unsigned char *SHA1(const unsigned char *data, size_t data_size, unsigned char *out_data)
+unsigned char *NOMIGRATE_ITEM_L(SHA1)(const unsigned char *data, size_t data_size, unsigned char *out_data)
 {
-    SHA_CTX ctx;
-    SHA1_Init(&ctx);
-    SHA1_Update(&ctx, data, data_size);
-    SHA1_Final(out_data, &ctx);
+    NOMIGRATE_ITEM_U(SHA_CTX) ctx;
+
+    if (!NOMIGRATE_ITEM_L(SHA1_Init)(&ctx))
+    {
+        return NULL;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA1_Update)(&ctx, data, data_size))
+    {
+        return NULL;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA1_Final)(out_data, &ctx))
+    {
+        return NULL;
+    }
+
     return out_data;
 }

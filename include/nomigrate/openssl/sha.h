@@ -5,25 +5,42 @@
 
 #include <stddef.h>
 
+#ifndef NOMIGRATE_COVER
+# define NOMIGRATE_ITEM_L(x) nomigrate_##x
+# define NOMIGRATE_ITEM_U(x) NOMIGRATE_##x
+#else
+# define NOMIGRATE_ITEM_L(x) x
+# define NOMIGRATE_ITEM_U(x) x
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define SHA_DIGEST_LENGTH 20
+#ifndef SHA_DIGEST_LENGTH
+# define SHA_DIGEST_LENGTH 20
+#endif
 
-struct SHA_CTX_ST {
+struct NOMIGRATE_ITEM_U(SHA_CTX_CORE_ST) {
     BCRYPT_ALG_HANDLE h_alg;
     BCRYPT_HASH_HANDLE h_hash;
 };
 
-typedef struct SHA_CTX_ST SHA_CTX;
+typedef struct NOMIGRATE_ITEM_U(SHA_CTX_CORE_ST) NOMIGRATE_ITEM_U(SHA_CTX_CORE);
 
-int SHA1_Init(SHA_CTX *ctx);
-int SHA1_Update(SHA_CTX *ctx, const void *data, size_t data_size);
-int SHA1_Final(unsigned char *out_data, SHA_CTX *ctx);
-void SHA1_Transform(SHA_CTX *ctx, const unsigned char *data);
+struct NOMIGRATE_ITEM_U(SHA_CTX_ST) {
+    NOMIGRATE_ITEM_U(SHA_CTX_CORE) core;
+    char unused[80];
+};
 
-unsigned char *SHA1(const unsigned char *data, size_t data_size, unsigned char *out_data);
+typedef struct NOMIGRATE_ITEM_U(SHA_CTX_ST) NOMIGRATE_ITEM_U(SHA_CTX);
+
+int NOMIGRATE_ITEM_L(SHA1_Init)(NOMIGRATE_ITEM_U(SHA_CTX) *ctx);
+int NOMIGRATE_ITEM_L(SHA1_Update)(NOMIGRATE_ITEM_U(SHA_CTX) *ctx, const void *data, size_t data_size);
+int NOMIGRATE_ITEM_L(SHA1_Final)(unsigned char *out_data, NOMIGRATE_ITEM_U(SHA_CTX) *ctx);
+void NOMIGRATE_ITEM_L(SHA1_Transform)(NOMIGRATE_ITEM_U(SHA_CTX) *ctx, const unsigned char *data);
+
+unsigned char *NOMIGRATE_ITEM_L(SHA1)(const unsigned char *data, size_t data_size, unsigned char *out_data);
 
 #ifdef __cplusplus
 }
