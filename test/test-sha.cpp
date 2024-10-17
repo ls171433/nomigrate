@@ -32,68 +32,12 @@ TEST(sha, general)
     EXPECT_EQ(NOMIGRATE_SHA512_DIGEST_LENGTH,     SHA512_DIGEST_LENGTH);
 }
 
-struct together_SHA_CTX
+TEST(sha, SHA1)
 {
     NOMIGRATE_SHA_CTX nomigrate_ctx;
               SHA_CTX  original_ctx;
-};
-
-static void together_SHA1_Init(together_SHA_CTX *ctx)
-{
-    EXPECT_NE(nomigrate_SHA1_Init(&ctx->nomigrate_ctx), 0);
-    EXPECT_NE(          SHA1_Init(&ctx-> original_ctx), 0);
-}
-
-static void together_SHA1_Update(together_SHA_CTX *ctx, const void *data, size_t data_size)
-{
-    EXPECT_NE(nomigrate_SHA1_Update(&ctx->nomigrate_ctx, data, data_size), 0);
-    EXPECT_NE(          SHA1_Update(&ctx-> original_ctx, data, data_size), 0);
-}
-
-static void together_SHA1_Final(together_SHA_CTX *ctx)
-{
-    std::vector<unsigned char> nomigrate_hash(SHA_DIGEST_LENGTH);
-    std::vector<unsigned char>  original_hash(SHA_DIGEST_LENGTH);
-
-    EXPECT_NE(nomigrate_SHA1_Final(nomigrate_hash.data(), &ctx->nomigrate_ctx), 0);
-    EXPECT_NE(          SHA1_Final( original_hash.data(), &ctx-> original_ctx), 0);
-
-    EXPECT_EQ(nomigrate_hash, original_hash);
-}
-
-struct together_SHA256_CTX
-{
-    NOMIGRATE_SHA256_CTX nomigrate_ctx;
-              SHA256_CTX  original_ctx;
-};
-
-static void together_SHA224_Init(together_SHA256_CTX *ctx)
-{
-    EXPECT_NE(nomigrate_SHA224_Init(&ctx->nomigrate_ctx), 0);
-    EXPECT_NE(          SHA224_Init(&ctx-> original_ctx), 0);
-}
-
-static void together_SHA224_Update(together_SHA256_CTX *ctx, const void *data, size_t data_size)
-{
-    EXPECT_NE(nomigrate_SHA224_Update(&ctx->nomigrate_ctx, data, data_size), 0);
-    EXPECT_NE(          SHA224_Update(&ctx-> original_ctx, data, data_size), 0);
-}
-
-static void together_SHA224_Final(together_SHA256_CTX *ctx)
-{
-    std::vector<unsigned char> nomigrate_hash(SHA224_DIGEST_LENGTH);
-    std::vector<unsigned char>  original_hash(SHA224_DIGEST_LENGTH);
-
-    EXPECT_NE(nomigrate_SHA224_Final(nomigrate_hash.data(), &ctx->nomigrate_ctx), 0);
-    EXPECT_NE(          SHA224_Final( original_hash.data(), &ctx-> original_ctx), 0);
-
-    EXPECT_EQ(nomigrate_hash, original_hash);
-}
-
-TEST(sha, SHA1)
-{
-    together_SHA_CTX ctx;
-    together_SHA1_Init(&ctx);
+    EXPECT_NE(nomigrate_SHA1_Init(&nomigrate_ctx), 0);
+    EXPECT_NE(          SHA1_Init( &original_ctx), 0);
 
     for (size_t i = 0; i < random_int<size_t>(0, 10000); ++i)
     {
@@ -102,16 +46,25 @@ TEST(sha, SHA1)
         {
             c = random_int<unsigned char>(0, UCHAR_MAX);
         }
-        together_SHA1_Update(&ctx, buffer.data(), buffer.size());
+        EXPECT_NE(nomigrate_SHA1_Update(&nomigrate_ctx, buffer.data(), buffer.size()), 0);
+        EXPECT_NE(          SHA1_Update( &original_ctx, buffer.data(), buffer.size()), 0);
     }
 
-    together_SHA1_Final(&ctx);
+    std::vector<unsigned char> nomigrate_hash(SHA_DIGEST_LENGTH);
+    std::vector<unsigned char>  original_hash(SHA_DIGEST_LENGTH);
+
+    EXPECT_NE(nomigrate_SHA1_Final(nomigrate_hash.data(), &nomigrate_ctx), 0);
+    EXPECT_NE(          SHA1_Final( original_hash.data(),  &original_ctx), 0);
+
+    EXPECT_EQ(nomigrate_hash, original_hash);
 }
 
 TEST(sha, SHA224)
 {
-    together_SHA256_CTX ctx;
-    together_SHA224_Init(&ctx);
+    NOMIGRATE_SHA256_CTX nomigrate_ctx;
+              SHA256_CTX  original_ctx;
+    EXPECT_NE(nomigrate_SHA224_Init(&nomigrate_ctx), 0);
+    EXPECT_NE(          SHA224_Init( &original_ctx), 0);
 
     for (size_t i = 0; i < random_int<size_t>(0, 10000); ++i)
     {
@@ -120,8 +73,96 @@ TEST(sha, SHA224)
         {
             c = random_int<unsigned char>(0, UCHAR_MAX);
         }
-        together_SHA224_Update(&ctx, buffer.data(), buffer.size());
+        EXPECT_NE(nomigrate_SHA224_Update(&nomigrate_ctx, buffer.data(), buffer.size()), 0);
+        EXPECT_NE(          SHA224_Update( &original_ctx, buffer.data(), buffer.size()), 0);
     }
 
-    together_SHA224_Final(&ctx);
+    std::vector<unsigned char> nomigrate_hash(SHA224_DIGEST_LENGTH);
+    std::vector<unsigned char>  original_hash(SHA224_DIGEST_LENGTH);
+
+    EXPECT_NE(nomigrate_SHA224_Final(nomigrate_hash.data(), &nomigrate_ctx), 0);
+    EXPECT_NE(          SHA224_Final( original_hash.data(),  &original_ctx), 0);
+
+    EXPECT_EQ(nomigrate_hash, original_hash);
+}
+
+TEST(sha, SHA256)
+{
+    NOMIGRATE_SHA256_CTX nomigrate_ctx;
+              SHA256_CTX  original_ctx;
+    EXPECT_NE(nomigrate_SHA256_Init(&nomigrate_ctx), 0);
+    EXPECT_NE(          SHA256_Init( &original_ctx), 0);
+
+    for (size_t i = 0; i < random_int<size_t>(0, 10000); ++i)
+    {
+        std::vector<unsigned char> buffer(random_int<size_t>(0, 65536));
+        for (unsigned char& c : buffer)
+        {
+            c = random_int<unsigned char>(0, UCHAR_MAX);
+        }
+        EXPECT_NE(nomigrate_SHA256_Update(&nomigrate_ctx, buffer.data(), buffer.size()), 0);
+        EXPECT_NE(          SHA256_Update( &original_ctx, buffer.data(), buffer.size()), 0);
+    }
+
+    std::vector<unsigned char> nomigrate_hash(SHA256_DIGEST_LENGTH);
+    std::vector<unsigned char>  original_hash(SHA256_DIGEST_LENGTH);
+
+    EXPECT_NE(nomigrate_SHA256_Final(nomigrate_hash.data(), &nomigrate_ctx), 0);
+    EXPECT_NE(          SHA256_Final( original_hash.data(),  &original_ctx), 0);
+
+    EXPECT_EQ(nomigrate_hash, original_hash);
+}
+
+TEST(sha, SHA384)
+{
+    NOMIGRATE_SHA512_CTX nomigrate_ctx;
+              SHA512_CTX  original_ctx;
+    EXPECT_NE(nomigrate_SHA384_Init(&nomigrate_ctx), 0);
+    EXPECT_NE(          SHA384_Init( &original_ctx), 0);
+
+    for (size_t i = 0; i < random_int<size_t>(0, 10000); ++i)
+    {
+        std::vector<unsigned char> buffer(random_int<size_t>(0, 65536));
+        for (unsigned char& c : buffer)
+        {
+            c = random_int<unsigned char>(0, UCHAR_MAX);
+        }
+        EXPECT_NE(nomigrate_SHA384_Update(&nomigrate_ctx, buffer.data(), buffer.size()), 0);
+        EXPECT_NE(          SHA384_Update( &original_ctx, buffer.data(), buffer.size()), 0);
+    }
+
+    std::vector<unsigned char> nomigrate_hash(SHA384_DIGEST_LENGTH);
+    std::vector<unsigned char>  original_hash(SHA384_DIGEST_LENGTH);
+
+    EXPECT_NE(nomigrate_SHA384_Final(nomigrate_hash.data(), &nomigrate_ctx), 0);
+    EXPECT_NE(          SHA384_Final( original_hash.data(),  &original_ctx), 0);
+
+    EXPECT_EQ(nomigrate_hash, original_hash);
+}
+
+TEST(sha, SHA512)
+{
+    NOMIGRATE_SHA512_CTX nomigrate_ctx;
+              SHA512_CTX  original_ctx;
+    EXPECT_NE(nomigrate_SHA512_Init(&nomigrate_ctx), 0);
+    EXPECT_NE(          SHA512_Init( &original_ctx), 0);
+
+    for (size_t i = 0; i < random_int<size_t>(0, 10000); ++i)
+    {
+        std::vector<unsigned char> buffer(random_int<size_t>(0, 65536));
+        for (unsigned char& c : buffer)
+        {
+            c = random_int<unsigned char>(0, UCHAR_MAX);
+        }
+        EXPECT_NE(nomigrate_SHA512_Update(&nomigrate_ctx, buffer.data(), buffer.size()), 0);
+        EXPECT_NE(          SHA512_Update( &original_ctx, buffer.data(), buffer.size()), 0);
+    }
+
+    std::vector<unsigned char> nomigrate_hash(SHA512_DIGEST_LENGTH);
+    std::vector<unsigned char>  original_hash(SHA512_DIGEST_LENGTH);
+
+    EXPECT_NE(nomigrate_SHA512_Final(nomigrate_hash.data(), &nomigrate_ctx), 0);
+    EXPECT_NE(          SHA512_Final( original_hash.data(),  &original_ctx), 0);
+
+    EXPECT_EQ(nomigrate_hash, original_hash);
 }

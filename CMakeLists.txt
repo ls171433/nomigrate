@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.27)
 project(nomigrate)
 
-add_library(nomigrate-crypto SHARED src/sha.c)
+add_library(nomigrate-crypto SHARED src/sha.c src/sha_cng.c src/sha224.c)
 target_include_directories(nomigrate-crypto PUBLIC include)
 target_link_libraries(nomigrate-crypto PUBLIC bcrypt)
 

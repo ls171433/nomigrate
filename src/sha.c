@@ -1,117 +1,10 @@
 #include <nomigrate/openssl/sha.h>
-#include <stdio.h>
 
-int NOMIGRATE_ITEM_L(SHA1_Init)(NOMIGRATE_ITEM_U(SHA_CTX) *ctx)
-{
-    NTSTATUS status;
-
-    status = BCryptOpenAlgorithmProvider(&ctx->core.h_alg, BCRYPT_SHA1_ALGORITHM, NULL, 0);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        return 0;
-    }
-
-    status = BCryptCreateHash(ctx->core.h_alg, &ctx->core.h_hash, NULL, 0, NULL, 0, 0);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        status = BCryptCloseAlgorithmProvider(ctx->core.h_alg, 0);
-        return 0;
-    }
-
-    return 1;
-}
-
-int NOMIGRATE_ITEM_L(SHA1_Update)(NOMIGRATE_ITEM_U(SHA_CTX) *ctx, const void *data, size_t data_size)
-{
-    NTSTATUS status;
-
-    status = BCryptHashData(ctx->core.h_hash, (PUCHAR)data, data_size, 0);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        return 0;
-    }
-
-    return 1;
-}
-
-int NOMIGRATE_ITEM_L(SHA1_Final)(unsigned char *out_data, NOMIGRATE_ITEM_U(SHA_CTX) *ctx)
-{
-    NTSTATUS status;
-
-    status = BCryptFinishHash(ctx->core.h_hash, out_data, NOMIGRATE_ITEM_U(SHA_DIGEST_LENGTH), 0);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        status = BCryptCloseAlgorithmProvider(ctx->core.h_alg, 0);
-        return 0;
-    }
-
-    status = BCryptCloseAlgorithmProvider(ctx->core.h_alg, 0);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        return 0;
-    }
-
-    return 1;
-}
-
-void NOMIGRATE_ITEM_L(SHA1_Transform)(NOMIGRATE_ITEM_U(SHA_CTX) *ctx, const unsigned char *data)
+void NOMIGRATE_ITEM_L(SHA1_Transform)(NOMIGRATE_ITEM_U(SHA1_CTX) *ctx, const unsigned char *data)
 {
 }
 
-int NOMIGRATE_ITEM_L(SHA224_Init)(NOMIGRATE_ITEM_U(SHA256_CTX) *ctx)
-{
-    NTSTATUS status;
-
-    status = BCryptOpenAlgorithmProvider(&ctx->core.h_alg, L"SHA224", NULL, 0);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        return 0;
-    }
-
-    status = BCryptCreateHash(ctx->core.h_alg, &ctx->core.h_hash, NULL, 0, NULL, 0, 0);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        status = BCryptCloseAlgorithmProvider(ctx->core.h_alg, 0);
-        return 0;
-    }
-
-    return 1;
-}
-
-int NOMIGRATE_ITEM_L(SHA224_Update)(NOMIGRATE_ITEM_U(SHA256_CTX) *ctx, const void *data, size_t data_size)
-{
-    NTSTATUS status;
-
-    status = BCryptHashData(ctx->core.h_hash, (PUCHAR)data, data_size, 0);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        return 0;
-    }
-
-    return 1;
-}
-
-int NOMIGRATE_ITEM_L(SHA224_Final)(unsigned char *out_data, NOMIGRATE_ITEM_U(SHA256_CTX) *ctx)
-{
-    NTSTATUS status;
-
-    status = BCryptFinishHash(ctx->core.h_hash, out_data, NOMIGRATE_ITEM_U(SHA224_DIGEST_LENGTH), 0);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        status = BCryptCloseAlgorithmProvider(ctx->core.h_alg, 0);
-        return 0;
-    }
-
-    status = BCryptCloseAlgorithmProvider(ctx->core.h_alg, 0);
-    if (!BCRYPT_SUCCESS(status))
-    {
-        return 0;
-    }
-
-    return 1;
-}
-
-void NOMIGRATE_ITEM_L(SHA224_Transform)(NOMIGRATE_ITEM_U(SHA256_CTX) *ctx, const unsigned char *data)
+void NOMIGRATE_ITEM_L(SHA224_Transform)(NOMIGRATE_ITEM_U(SHA224_CTX) *ctx, const unsigned char *data)
 {
 }
 
@@ -119,7 +12,7 @@ void NOMIGRATE_ITEM_L(SHA256_Transform)(NOMIGRATE_ITEM_U(SHA256_CTX) *ctx, const
 {
 }
 
-void NOMIGRATE_ITEM_L(SHA384_Transform)(NOMIGRATE_ITEM_U(SHA512_CTX) *ctx, const unsigned char *data)
+void NOMIGRATE_ITEM_L(SHA384_Transform)(NOMIGRATE_ITEM_U(SHA384_CTX) *ctx, const unsigned char *data)
 {
 }
 
@@ -129,8 +22,8 @@ void NOMIGRATE_ITEM_L(SHA512_Transform)(NOMIGRATE_ITEM_U(SHA512_CTX) *ctx, const
 
 unsigned char *NOMIGRATE_ITEM_L(SHA1)(const unsigned char *data, size_t data_size, unsigned char *out_data)
 {
-    NOMIGRATE_ITEM_U(SHA_CTX) ctx;
-    static unsigned char static_out_data[NOMIGRATE_ITEM_U(SHA256_DIGEST_LENGTH)];
+    NOMIGRATE_ITEM_U(SHA1_CTX) ctx;
+    static unsigned char static_out_data[NOMIGRATE_ITEM_U(SHA1_DIGEST_LENGTH)];
 
     if (out_data == NULL)
     {
@@ -148,6 +41,118 @@ unsigned char *NOMIGRATE_ITEM_L(SHA1)(const unsigned char *data, size_t data_siz
     }
 
     if (!NOMIGRATE_ITEM_L(SHA1_Final)(out_data, &ctx))
+    {
+        return NULL;
+    }
+
+    return out_data;
+}
+
+unsigned char *NOMIGRATE_ITEM_L(SHA224)(const unsigned char *data, size_t data_size, unsigned char *out_data)
+{
+    NOMIGRATE_ITEM_U(SHA224_CTX) ctx;
+    static unsigned char static_out_data[NOMIGRATE_ITEM_U(SHA224_DIGEST_LENGTH)];
+
+    if (out_data == NULL)
+    {
+        out_data = static_out_data;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA224_Init)(&ctx))
+    {
+        return NULL;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA224_Update)(&ctx, data, data_size))
+    {
+        return NULL;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA224_Final)(out_data, &ctx))
+    {
+        return NULL;
+    }
+
+    return out_data;
+}
+
+unsigned char *NOMIGRATE_ITEM_L(SHA256)(const unsigned char *data, size_t data_size, unsigned char *out_data)
+{
+    NOMIGRATE_ITEM_U(SHA256_CTX) ctx;
+    static unsigned char static_out_data[NOMIGRATE_ITEM_U(SHA256_DIGEST_LENGTH)];
+
+    if (out_data == NULL)
+    {
+        out_data = static_out_data;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA256_Init)(&ctx))
+    {
+        return NULL;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA256_Update)(&ctx, data, data_size))
+    {
+        return NULL;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA256_Final)(out_data, &ctx))
+    {
+        return NULL;
+    }
+
+    return out_data;
+}
+
+unsigned char *NOMIGRATE_ITEM_L(SHA384)(const unsigned char *data, size_t data_size, unsigned char *out_data)
+{
+    NOMIGRATE_ITEM_U(SHA384_CTX) ctx;
+    static unsigned char static_out_data[NOMIGRATE_ITEM_U(SHA384_DIGEST_LENGTH)];
+
+    if (out_data == NULL)
+    {
+        out_data = static_out_data;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA384_Init)(&ctx))
+    {
+        return NULL;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA384_Update)(&ctx, data, data_size))
+    {
+        return NULL;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA384_Final)(out_data, &ctx))
+    {
+        return NULL;
+    }
+
+    return out_data;
+}
+
+unsigned char *NOMIGRATE_ITEM_L(SHA512)(const unsigned char *data, size_t data_size, unsigned char *out_data)
+{
+    NOMIGRATE_ITEM_U(SHA512_CTX) ctx;
+    static unsigned char static_out_data[NOMIGRATE_ITEM_U(SHA512_DIGEST_LENGTH)];
+
+    if (out_data == NULL)
+    {
+        out_data = static_out_data;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA512_Init)(&ctx))
+    {
+        return NULL;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA512_Update)(&ctx, data, data_size))
+    {
+        return NULL;
+    }
+
+    if (!NOMIGRATE_ITEM_L(SHA512_Final)(out_data, &ctx))
     {
         return NULL;
     }
